@@ -39,10 +39,8 @@ class GomokuEnv:
         # action
         self.board[OPPONENT][action] = 1
         self.board[COLOR] = abs(self.board[COLOR] - 1)
-        self.state = np.r_[self.board[OPPONENT],
-                           self.board[CURRENT], self.board[COLOR]]
-        return self._check_win(
-            self.board[OPPONENT].reshape(BOARD_SIZE, BOARD_SIZE))
+        self.state = np.r_[self.board[OPPONENT], self.board[CURRENT], self.board[COLOR]]
+        return self._check_win(self.board[OPPONENT].reshape(BOARD_SIZE, BOARD_SIZE))
 
     def render(self):
         if self.board[COLOR][0] == BLACK:
@@ -52,21 +50,22 @@ class GomokuEnv:
             board = (self.board[CURRENT] + self.board[OPPONENT] * 2).reshape(
                 BOARD_SIZE, BOARD_SIZE)
         count = np.sum(self.board[CURRENT] + self.board[OPPONENT])
-        board_str = '-' * BOARD_SIZE + '   BOARD   ' + '-' * BOARD_SIZE + '\n'
+        board_str = '\n  A B C D E F G H I\n'
+
         for i in range(BOARD_SIZE):
             for j in range(BOARD_SIZE):
                 if j == 0:
-                    board_str += '['
+                    board_str += '{}'.format(i + 1)
                 if board[i][j] == 0:
-                    board_str += ' - '
+                    board_str += ' .'
                 if board[i][j] == 1:
-                    board_str += ' O '
+                    board_str += ' O'
                 if board[i][j] == 2:
-                    board_str += ' X '
+                    board_str += ' X'
                 if j == BOARD_SIZE - 1:
-                    board_str += ']\n'
-        board_str += '*' * BOARD_SIZE + \
-            '  MOVE: {}  '.format(count) + '*' * BOARD_SIZE
+                    board_str += ' \n'
+            if i == BOARD_SIZE - 1:
+                board_str += '  ***  MOVE: {} ***'.format(count)
         print(board_str)
 
     def _check_win(self, board):
@@ -85,8 +84,7 @@ class GomokuEnv:
                         reward = 1
                     else:
                         reward = -1
-                    print('########  {} Win! ########'.format(
-                        COLOR_DICT[color]))
+                    print('#####  {} Win! #####'.format(COLOR_DICT[color]))
                     return self.state, reward, done
                 if sum_diagonal_1 == 5 or sum_diagonal_2 == 5:
                     reward = 1
@@ -96,13 +94,12 @@ class GomokuEnv:
                         reward = 1
                     else:
                         reward = -1
-                    print('########  {} Win! ########'.format(
-                        COLOR_DICT[color]))
+                    print('#####  {} Win! #####'.format(COLOR_DICT[color]))
                     return self.state, reward, done
         if np.sum(self.board_fill) == BOARD_SIZE**2 - 1:
             reward = 0
             done = True
-            print('########    Draw!   ########')
+            print('#####    Draw!   #####')
             return self.state, reward, done
         else:  # game continues
             reward = 0
