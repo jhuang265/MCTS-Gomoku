@@ -177,6 +177,7 @@ def main():
         while not done:
             env.render()
             # start simulation
+            # action = mcts.get_action(state)
             action = pool.map(mcts.get_action, [state])
             state, z, done = env.step(action)
         if done:
