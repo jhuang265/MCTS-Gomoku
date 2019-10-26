@@ -1,6 +1,4 @@
-# MCTS based on Two Player UCT in O-Mok environment
-# Author: Jungdae Kim
-# kekmodel@gmail.com | facebook.com/kekmodel
+# Monte Carlo Tree Search based on Two Player UCT in Gomoku environment
 
 from gomoku_env import GomokuEnv, GomokuEnvSimul
 
