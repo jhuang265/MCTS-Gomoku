@@ -170,7 +170,7 @@ def main():
     pool = ProcessPool(nodes=4)
     result = {'Black': 0, 'White': 0, 'Draw': 0}
     for game in range(GAMES):
-        print('####  GAME: {}  ####\n'.format(game + 1))
+        print('####  GAME: {}  ####'.format(game + 1))
         # reset state
         state = env.reset()
         done = False
