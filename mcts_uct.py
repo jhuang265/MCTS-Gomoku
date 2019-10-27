@@ -19,8 +19,8 @@ BLACK = 1
 WHITE = 0
 BOARD_SIZE = 9
 
-SIMULATIONS = 10000
-GAMES = 12
+SIMULATIONS = 2000
+GAMES = 10000
 
 
 class MCTS:
@@ -39,7 +39,7 @@ class MCTS:
         self.key_memory = None
         self.action_memory = None
 
-        # init member
+        # init
         self._reset()
         self.reset_tree()
 
@@ -50,35 +50,36 @@ class MCTS:
     def reset_tree(self):
         self.tree = defaultdict(lambda: np.zeros((BOARD_SIZE**2, 2), 'float'))
 
-    def get_action(self, state):
+    def get_action(self, state, board):
         self.root = state.copy()
-        self._simulation(state)
+        self._simulation(state, board)
         # init the root board after simulation
-        self.board = self.root.reshape(3, BOARD_SIZE**2)
+        self.board = board
+        #self.board = self.root.reshape(3, BOARD_SIZE**2)
         board_fill = self.board[CURRENT] + self.board[OPPONENT]
         self.legal_move = np.argwhere(board_fill == 0).flatten()
         self.no_legal_move = np.argwhere(board_fill != 0).flatten()
         # root state's key
         root_key = md5(self.root.tostring()).hexdigest()
-        # only use Q
+        # argmax Q
         action = self._selection(root_key, c_ucb=0)
         print(self.ucb.reshape(BOARD_SIZE, BOARD_SIZE).round(decimals=4))
         return action
 
-    def _simulation(self, state):
+    def _simulation(self, state, board):
         start = time.time()
         print('Computing Moves', end='', flush=True)
         for sim in range(SIMULATIONS):
-            if (sim + 1) % (SIMULATIONS / 10) == 0:
+            if (sim + 1) % (SIMULATIONS / 5) == 0:
                 print('.', end='', flush=True)
             # reset state
-            self.state = self.env_simul.reset(state)
+            self.state, self.board = self.env_simul.reset(state)
             done = False
             n_selection = 0
             n_expansion = 0
             while not done:
                 # init board
-                self.board = self.state.reshape(3, BOARD_SIZE**2)
+                # self.board = self.state.reshape(3, BOARD_SIZE**2)
                 board_fill = self.board[CURRENT] + self.board[OPPONENT]
                 self.legal_move = np.argwhere(board_fill == 0).flatten()
                 self.no_legal_move = np.argwhere(board_fill != 0).flatten()
@@ -100,7 +101,7 @@ class MCTS:
                     else:
                         # rollout
                         action = random.choice(self.legal_move)
-                self.state, reward, done = self.env_simul.step(action)
+                self.state, self.board, reward, done = self.env_simul.step(action)
             if done:
                 # backup & reset memory
                 self._backup(reward, n_selection + n_expansion)
@@ -172,14 +173,14 @@ def main():
     for game in range(GAMES):
         print('####  GAME: {}  ####'.format(game + 1))
         # reset state
-        state = env.reset()
+        state, board = env.reset()
         done = False
         while not done:
             env.render()
             # start simulation
             # action = mcts.get_action(state)
             action = pool.map(mcts.get_action, [state])
-            state, z, done = env.step(action)
+            state, board, z, done = env.step(action)
         if done:
             if z == 1:
                 result['Black'] += 1
@@ -193,12 +194,12 @@ def main():
         # print the result
         print('')
         print("=" * 20, " {}  Game End  ".format(game + 1), "=" * 20)
-        stat = (
+        stat_game = (
             'Black Win: {}  White Win: {}  Draw: {}  Winrate: {:0.1f}%'.format(
                 result['Black'], result['White'], result['Draw'],
                 1 / (1 + np.exp(result['White'] / (game + 1)) /
                      np.exp(result['Black'] / (game + 1))) * 100))
-        print(stat, '\n')
+        print(stat_game, '\n')
 
 
 if __name__ == '__main__':
