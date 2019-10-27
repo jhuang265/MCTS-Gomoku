@@ -52,7 +52,7 @@ class MCTS:
 
     def get_action(self, state, board):
         self.root = state.copy()
-        self._simulation(state, board)
+        self._simulation(state)
         # init the root board after simulation
         self.board = board
         #self.board = self.root.reshape(3, BOARD_SIZE**2)
@@ -66,7 +66,7 @@ class MCTS:
         print(self.ucb.reshape(BOARD_SIZE, BOARD_SIZE).round(decimals=4))
         return action
 
-    def _simulation(self, state, board):
+    def _simulation(self, state):
         start = time.time()
         print('Computing Moves', end='', flush=True)
         for sim in range(SIMULATIONS):
