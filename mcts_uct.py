@@ -1,6 +1,6 @@
 # Monte Carlo Tree Search based on Two Player UCT in Gomoku environment
 
-from gomoku_env import GomokuEnv, GomokuEnvSimul
+from gomoku_env_history import GomokuEnv, GomokuEnvSimul
 
 import time
 from hashlib import md5
