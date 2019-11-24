@@ -1,6 +1,6 @@
 # Monte Carlo Tree Search based on Two Player UCT in Gomoku environment
 
-from gomoku_env_history import GomokuEnv, GomokuEnvSimul
+from gomoku_env import GomokuEnv, GomokuEnvSimul
 
 import time
 from hashlib import md5
@@ -19,14 +19,14 @@ BLACK = 1
 WHITE = 0
 BOARD_SIZE = 9
 
-SIMULATIONS = BOARD_SIZE**2 * 100
-GAMES = 30
+SIMULATIONS = BOARD_SIZE**2 * 30
+GAME = 30
 
 
 class MCTS:
-    def __init__(self, num_simul):
-        self.env_simul = GomokuEnvSimul()
-        self.num_simul = num_simul
+    def __init__(self, n_simul, board_size, n_history):
+        self.env_simul = GomokuEnvSimul(board_size, n_history)
+        self.n_simul = n_simul
         self.tree = None
         self.root = None
         self.state = None
@@ -70,8 +70,8 @@ class MCTS:
     def _simulation(self, state):
         start = time.time()
         print('Computing Moves', end='', flush=True)
-        for sim in range(self.num_simul):
-            if (sim + 1) % (self.num_simul / 10) == 0:
+        for sim in range(self.n_simul):
+            if (sim + 1) % (self.n_simul / 10) == 0:
                 print('.', end='', flush=True)
             # reset state
             self.state, self.board = self.env_simul.reset(state)
@@ -92,16 +92,15 @@ class MCTS:
                     self.action_memory.appendleft(action)
                     self.key_memory.appendleft(key)
                     n_selection += 1
+                elif n_expansion == 0:
+                    # expansion
+                    action = self._expansion(key)
+                    self.action_memory.appendleft(action)
+                    self.key_memory.appendleft(key)
+                    n_expansion += 1
                 else:
-                    if n_expansion == 0:
-                        # expansion
-                        action = self._expansion(key)
-                        self.action_memory.appendleft(action)
-                        self.key_memory.appendleft(key)
-                        n_expansion += 1
-                    else:
-                        # rollout
-                        action = random.choice(self.legal_move)
+                    # rollout
+                    action = random.choice(self.legal_move)
                 self.state, self.board, reward, done = self.env_simul.step(action)
             if done:
                 # backup & reset memory
@@ -166,13 +165,13 @@ class MCTS:
             edges[action][Q] += (reward - edges[action][Q]) / edges[action][N]
 
 
-def main():
-    env = GomokuEnv()
-    mcts = MCTS(SIMULATIONS)
+def play():
+    env = GomokuEnv(BOARD_SIZE, HISTORY)
+    mcts = MCTS(SIMULATIONS, BOARD_SIZE, HISTORY)
     pool = ProcessPool(nodes=4)
     result = {'Black': 0, 'White': 0, 'Draw': 0}
-    for game in range(GAMES):
-        print('####  GAME: {}  ####'.format(game + 1))
+    for g in range(GAME):
+        print('#' * (BOARD_SIZE - 4), ' GAME: {} '.format(g + 1), '#' * (BOARD_SIZE - 4))
         # reset state
         state, board = env.reset()
         done = False
@@ -194,14 +193,12 @@ def main():
             mcts.reset_tree()
         # print the result
         print('')
-        print("=" * 20, " {}  Game End  ".format(game + 1), "=" * 20)
-        stat_game = (
-            'Black Win: {}  White Win: {}  Draw: {}  Winrate: {:0.1f}%'.format(
-                result['Black'], result['White'], result['Draw'],
-                1 / (1 + np.exp(result['White'] / (game + 1)) /
-                     np.exp(result['Black'] / (game + 1))) * 100))
-        print(stat_game, '\n')
+        print('=' * 20, " {}  Game End  ".format(g + 1), '=' * 20)
+        blw, whw, drw = result['Black'], result['White'], result['Draw']
+        stat = ('Black Win: {}  White Win: {}  Draw: {}  Winrate: {:0.1f}%'.format(
+            blw, whw, drw, 1 / (1 + np.exp(whw) / np.exp(blw)) * 100))
+        print(stat, '\n')
 
 
 if __name__ == '__main__':
-    main()
+    play()
