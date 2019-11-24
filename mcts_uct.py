@@ -19,8 +19,8 @@ BLACK = 1
 WHITE = 0
 BOARD_SIZE = 9
 
-SIMULATIONS = BOARD_SIZE**2 * 30
-GAME = 30
+SIMULATIONS = BOARD_SIZE**2 * 10
+GAME = 10
 
 
 class MCTS:
@@ -196,7 +196,7 @@ def play():
         print('=' * 20, " {}  Game End  ".format(g + 1), '=' * 20)
         blw, whw, drw = result['Black'], result['White'], result['Draw']
         stat = ('Black Win: {}  White Win: {}  Draw: {}  Winrate: {:0.1f}%'.format(
-            blw, whw, drw, 1 / (1 + np.exp(whw) / np.exp(blw)) * 100))
+            blw, whw, drw, 1 / (1 + np.exp(whw / (g + 1)) / np.exp(blw / (g + 1))) * 100))
         print(stat, '\n')
 
 
