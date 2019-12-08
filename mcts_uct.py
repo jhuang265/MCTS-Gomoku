@@ -10,7 +10,6 @@ from pathos.multiprocessing import ProcessPool
 
 import numpy as np
 from numpy import random
-from numba import jit
 
 N, Q = 0, 1
 CURRENT = 0
@@ -22,15 +21,16 @@ BOARD_SIZE = 9
 HISTORY = 2
 
 SIMULATIONS = BOARD_SIZE**2 * 10
+THINK_TIME = 10
 GAME = 1
 
 
 class MCTS:
-    @jit
-    def __init__(self, n_simul, board_size, n_history):
+    def __init__(self, board_size, n_history, think_time):
         self.env_simul = GomokuEnv(board_size, n_history, display=false)
         self.n_simul = n_simul
         self.board_size = board_size
+        self.think_time = think_time
         self.tree = None
         self.root = None
         self.state = None
@@ -47,7 +47,6 @@ class MCTS:
         self._reset()
         self.reset_tree()
 
-    @jit
     def _reset(self):
         self.key_memory = deque(maxlen=self.board_size**2)
         self.action_memory = deque(maxlen=self.board_size**2)
@@ -55,7 +54,6 @@ class MCTS:
     def reset_tree(self):
         self.tree = defaultdict(lambda: np.zeros((self.board_size**2, 2), 'float'))
 
-    @jit
     def get_action(self, state, board):
         self.root = state.copy()
         self._simulation(state)
@@ -73,15 +71,15 @@ class MCTS:
         print(self.ucb.reshape(self.board_size, self.board_size).round(decimals=4))
         return action
 
-    @jit
     def _simulation(self, state):
         start = time.time()
-        reward = 0
-        sim = 0
+        finish = 0
         print('Computing Moves', end='')
         sys.stdout.flush()
-        for sim in range(self.n_simul):
-            if (sim + 1) % (self.n_simul / 10) == 0:
+        sim = 0
+        while True:
+            sim += 1
+            if finish % (self.think_time / 10) < 0.034:
                 print('.', end='')
                 sys.stdout.flush()
             # reset state
@@ -117,10 +115,11 @@ class MCTS:
                 # backup & reset memory
                 self._backup(reward, n_selection + n_expansion)
                 self._reset()
-        finish = round(time.time() - start)
-        print('\n"{} Simulations End in {}s"'.format(sim + 1, finish))
+                finish = time.time() - start
+                if finish >= self.think_time:
+                    break
+        print('\n"{} Simulations End in {:0.0f}s"'.format(sim, finish))
 
-    @jit
     def _selection(self, key, c_ucb):
         edges = self.tree[key]
         # get ucb
@@ -135,13 +134,11 @@ class MCTS:
         action = action[random.choice(len(action))]
         return action
 
-    @jit
     def _expansion(self, key):
         # only select once for rollout
         action = self._selection(key, c_ucb=1)
         return action
 
-    @jit
     def _ucb(self, edges, c_ucb):
         total_N = 0
         ucb = np.zeros((self.board_size**2), 'float')
@@ -169,7 +166,6 @@ class MCTS:
                 ucb[move] = np.inf
         return ucb
 
-    @jit
     def _backup(self, reward, steps):
         # steps = n_selection + n_expansion
         # update the edges in the tree
@@ -179,10 +175,9 @@ class MCTS:
             edges[action][N] += 1
             edges[action][Q] += (reward - edges[action][Q]) / edges[action][N]
 
-@jit
 def play():
     env = GomokuEnv(BOARD_SIZE, HISTORY)
-    mcts = MCTS(SIMULATIONS, BOARD_SIZE, HISTORY)
+    mcts = MCTS(BOARD_SIZE, HISTORY, THINK_TIME)
     pool = ProcessPool(nodes=4)
     result = {'Black': 0, 'White': 0, 'Draw': 0}
     for g in range(GAME):
