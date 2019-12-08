@@ -2,7 +2,6 @@ from __future__ import print_function
 from gomoku_env import GomokuEnv
 from mcts_uct import MCTS
 import numpy as np
-from numba import jit
 
 N, Q = 0, 1
 CURRENT = 0
@@ -24,6 +23,7 @@ COLUMN = {"a":  0, "b":  1, "c":  2,
           "M": 12, "N": 13, "O": 14}
 
 SIMULATIONS = BOARD_SIZE**2 * 30
+THINK_TIME = 600
 GAME = 1
 
 class HumanAgent:
@@ -43,7 +43,7 @@ class HumanAgent:
 class HumanUI:
     def __init__(self):
         self.human = HumanAgent()
-        self.ai = MCTS(SIMULATIONS, BOARD_SIZE, HISTORY)
+        self.ai = MCTS(BOARD_SIZE, HISTORY, THINK_TIME)
 
     def get_action(self, state, board, idx):
         if idx % 2 == 0:
@@ -52,14 +52,10 @@ class HumanUI:
             action = self.ai.get_action(state, board)
         return action
 
-@jit
 def play()
     env = GomokuEnv(BOARD_SIZE, HISTORY)
     manager = HumanUI()
     result = {-1: 0, 0: 0, 1: 0}
-    z = 0
-    g = 0
-    idx = 0
     for g in range(GAME):
         print('#####  Game: {}  #####'.format(g + 1))
         state, board = env.reset()
