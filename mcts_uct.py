@@ -1,7 +1,7 @@
 # Monte Carlo Tree Search based on Two Player UCT in Gomoku environment
 
 from __future__ import print_function
-from gomoku_env import GomokuEnv, GomokuEnvSimul
+from gomoku_env import GomokuEnv
 
 import time
 import sys
@@ -27,7 +27,7 @@ GAME = 1
 
 class MCTS:
     def __init__(self, n_simul, board_size, n_history):
-        self.env_simul = GomokuEnvSimul(board_size, n_history)
+        self.env_simul = GomokuEnv(board_size, n_history, display=false)
         self.n_simul = n_simul
         self.board_size = board_size
         self.tree = None
