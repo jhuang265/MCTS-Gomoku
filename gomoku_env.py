@@ -12,9 +12,10 @@ ALPHABET = 'A B C D E F G H I J K L M N O'
 
 
 class GomokuEnv:
-    def __init__(self, board_size, n_history):
+    def __init__(self, board_size, n_history, display=True):
         self.board_size = board_size
         self.n_history = n_history
+        state.display = display
         self.state = None
         self.board = None
         self.history = None
@@ -57,9 +58,9 @@ class GomokuEnv:
         self.board[COLOR] = abs(self.board[COLOR] - 1)
         self.state = np.r_[np.asarray(self.history).flatten(),
                            np.asarray(self.board[COLOR]).flatten()]
-        return self._check_win(self.board[CURRENT].reshape(self.board_size, self.board_size))
+        return self._check_win(self.board[CURRENT].reshape(self.board_size, self.board_size, self.display))
 
-    def _check_win(self, board):
+    def _check_win(self, board, display=True):
         current_grid = np.zeros((5, 5))
         for row in range(self.board_size - 5 + 1):
             for col in range(self.board_size - 5 + 1):
@@ -75,7 +76,8 @@ class GomokuEnv:
                         reward = 1
                     else:
                         reward = -1
-                    print('\n#########   {} Win!   #########'.format(COLOR_DICT[color]))
+                    if display:
+                        print('\n#########   {} Win!   #########'.format(COLOR_DICT[color]))
                     return self.state, self.board, reward, done
                 if sum_diagonal_1 == 5 or sum_diagonal_2 == 5:
                     reward = 1
@@ -85,12 +87,14 @@ class GomokuEnv:
                         reward = 1
                     else:
                         reward = -1
-                    print('\n#########   {} Win!   #########'.format(COLOR_DICT[color]))
+                    if display:
+                        print('\n#########   {} Win!   #########'.format(COLOR_DICT[color]))
                     return self.state, self.board, reward, done
         if np.sum(self.board_fill) == self.board_size**2 - 1:
             reward = 0
             done = True
-            print('\n#########     Draw!     #########')
+            if display:
+                print('\n#########     Draw!     #########')
             return self.state, self.board, reward, done
         else:  # continue
             reward = 0
@@ -146,44 +150,6 @@ class GomokuEnv:
         board_str += '  ' + '-' * (self.board_size - 5) + \
             ' MOVE: {} '.format(count) + '-' * (self.board_size - 5)
         print(board_str)
-
-
-class GomokuEnvSimul(GomokuEnv):
-    def _check_win(self, board):
-        current_grid = np.zeros((5, 5))
-        for row in range(self.board_size - 5 + 1):
-            for col in range(self.board_size - 5 + 1):
-                current_grid = board[row: row + 5, col: col + 5]
-                sum_horizontal = np.sum(current_grid, axis=1)
-                sum_vertical = np.sum(current_grid, axis=0)
-                sum_diagonal_1 = np.sum(current_grid.diagonal())
-                sum_diagonal_2 = np.sum(np.flipud(current_grid).diagonal())
-                if 5 in sum_horizontal or 5 in sum_vertical:
-                    done = True
-                    color = self.board[COLOR][0]
-                    if color == BLACK:
-                        reward = 1
-                    else:
-                        reward = -1
-                    return self.state, self.board, reward, done
-                if sum_diagonal_1 == 5 or sum_diagonal_2 == 5:
-                    reward = 1
-                    done = True
-                    color = self.board[COLOR][0]
-                    if color == BLACK:
-                        reward = 1
-                    else:
-                        reward = -1
-                    return self.state, self.board, reward, done
-        if np.sum(self.board_fill) == self.board_size**2 - 1:
-            reward = 0
-            done = True
-            return self.state, self.board, reward, done
-        else:  # continue
-            reward = 0
-            done = False
-            return self.state, self.board, reward, done
-
 
 if __name__ == '__main__':
     env = GomokuEnv(9, 2)
