@@ -28,7 +28,7 @@ class MCTS:
     def __init__(self, n_simul, board_size, n_history):
         self.env_simul = GomokuEnvSimul(board_size, n_history)
         self.n_simul = n_simul
-        self.board_zie = board_size
+        self.board_size = board_size
         self.tree = None
         self.root = None
         self.state = None
