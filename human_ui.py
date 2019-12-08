@@ -1,5 +1,6 @@
+from __future__ import print_function
 from gomoku_env import GomokuEnv
-from mcts_uct import MCTS
+from mcts import MCTS
 import numpy as np
 
 N, Q = 0, 1
@@ -21,7 +22,7 @@ COLUMN = {"a":  0, "b":  1, "c":  2,
           "J":  9, "K": 10, "L": 11,
           "M": 12, "N": 13, "O": 14}
 
-SIMULATIONS = BOARD_SIZE**2 * 400
+SIMULATIONS = BOARD_SIZE**2 * 10
 GAME = 1
 
 
