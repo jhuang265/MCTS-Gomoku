@@ -23,7 +23,7 @@ COLUMN = {"a":  0, "b":  1, "c":  2,
           "M": 12, "N": 13, "O": 14}
 
 SIMULATIONS = BOARD_SIZE**2 * 30
-THINK_TIME = 500
+THINK_TIME = 600
 GAME = 1
 
 class HumanAgent:
