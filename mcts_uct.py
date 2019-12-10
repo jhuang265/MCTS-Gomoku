@@ -18,11 +18,11 @@ COLOR = 2
 BLACK = 1
 WHITE = 0
 BOARD_SIZE = 9
-HISTORY = 2
+HISTORY = 8
 
 SIMULATIONS = BOARD_SIZE**2 * 10
-THINK_TIME = 100
-GAME = 20
+THINK_TIME = 3600
+GAME = 1
 
 
 class MCTS:
@@ -74,14 +74,18 @@ class MCTS:
     def _simulation(self, state):
         start = time.time()
         finish = 0
-        print('Computing Moves', end='')
-        sys.stdout.flush()
+        #print('Computing Moves', end='')
+        #sys.stdout.flush()
         sim = 0
         while True:
             sim += 1
-            if finish % (self.think_time / 10) < 0.0335:
-                print('.', end='')
-                sys.stdout.flush()
+            print('\rsimulaton: {}'.format(sim), end='')
+            sys.stdout.flush()
+
+            #if finish % (self.think_time / 10) < 0.0335:
+            #    print('.', end='')
+            #    sys.stdout.flush()
+
             # reset state
             self.state, self.board = self.env_simul.reset(state)
             done = False
