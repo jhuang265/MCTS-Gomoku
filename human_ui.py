@@ -23,7 +23,7 @@ COLUMN = {"a":  0, "b":  1, "c":  2,
           "M": 12, "N": 13, "O": 14}
 
 SIMULATIONS = BOARD_SIZE**2 * 30
-THINK_TIME = 600
+THINK_TIME = 500
 GAME = 1
 
 class HumanAgent:
@@ -82,8 +82,10 @@ def play()
         print('')
         print('=' * 20, " {}  Game End  ".format(g + 1), '=' * 20)
         blw, whw, drw = result['Black'], result['White'], result['Draw']
-        stat = ('Black Win: {}  White Win: {}  Draw: {}  Winrate: {:0.1f}%'.format(
-            blw, whw, drw, 1 / (1 + np.exp(whw / (g+1)) / np.exp(blw / (g+1))) * 100))
+        stat = (
+            'Black Win: {}  White Win: {}  Draw: {}  Winrate: {:0.1f}%'.format(
+                blw, whw, drw,
+                1 / (1 + np.exp(whw / (g+1)) / np.exp(blw / (g+1))) * 100))
         print(stat, '\n')
 
 if __name__ == '__main__':

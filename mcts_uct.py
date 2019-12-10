@@ -21,8 +21,8 @@ BOARD_SIZE = 9
 HISTORY = 2
 
 SIMULATIONS = BOARD_SIZE**2 * 10
-THINK_TIME = 10
-GAME = 1
+THINK_TIME = 100
+GAME = 20
 
 
 class MCTS:
@@ -79,7 +79,7 @@ class MCTS:
         sim = 0
         while True:
             sim += 1
-            if finish % (self.think_time / 10) < 0.034:
+            if finish % (self.think_time / 10) < 0.0335:
                 print('.', end='')
                 sys.stdout.flush()
             # reset state
