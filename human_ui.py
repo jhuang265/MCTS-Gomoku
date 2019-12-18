@@ -9,23 +9,21 @@ OPPONENT = 1
 COLOR = 2
 BLACK = 1
 WHITE = 0
-BOARD_SIZE = 15
-HISTORY = 4
-COLUMN = {"a":  0, "b":  1, "c":  2,
-          "d":  3, "e":  4, "f":  5,
-          "g":  6, "h":  7, "i":  8,
-          "j":  9, "k": 10, "l": 11,
+HISTORY = 2
+COLUMN = {"a": 0, "b": 1, "c": 2,
+          "d": 3, "e": 4, "f": 5,
+          "g": 6, "h": 7, "i": 8,
+          "j": 9, "k": 10, "l": 11,
           "m": 12, "n": 13, "o": 14,
-          "A":  0, "B":  1, "C":  2,
-          "D":  3, "E":  4, "F":  5,
-          "G":  6, "H":  7, "I":  8,
-          "J":  9, "K": 10, "L": 11,
+          "A": 0, "B": 1, "C": 2,
+          "D": 3, "E": 4, "F": 5,
+          "G": 6, "H": 7, "I": 8,
+          "J": 9, "K": 10, "L": 11,
           "M": 12, "N": 13, "O": 14}
-
-SIMULATIONS = BOARD_SIZE**2 * 30
-THINK_TIME = 600
-N_SIMUL = 1
+BOARD_SIZE = 9  # 9x9 ~ 15x15
+N_SIMUL = 50000  # number of simulations for 1 move
 GAME = 1
+
 
 class HumanAgent:
     def get_action(self):
