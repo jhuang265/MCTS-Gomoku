@@ -1,6 +1,5 @@
 from __future__ import print_function
 from collections import deque
-import sys
 import numpy as np
 
 CURRENT = 0
@@ -148,8 +147,8 @@ class GomokuEnv:
                         board_str += ' X'
                 if j == self.board_size - 1:
                     board_str += '\n'
-        board_str += '  ' + '-' * (self.board_size - 5) + \
-            ' MOVE: {} '.format(count) + '-' * (self.board_size - 5)
+        board_str += '  ' + '-' * (self.board_size - 6) + \
+                ' MOVE: {:2} '.format(count) + '-' * (self.board_size - 6)
         print('{}'.format(board_str))
 
 if __name__ == '__main__':
