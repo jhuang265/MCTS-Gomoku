@@ -67,7 +67,6 @@ class MCTS:
     def _simulation(self, state):
         start = time.time()
         finish = 0
-        print('')
         for sim in range(self.n_simul):
             print('\rsimulation: {}'.format(sim + 1), end='')
             sys.stdout.flush()
@@ -106,7 +105,7 @@ class MCTS:
                 finish = time.time() - start
                 # if finish >= self.think_time:
                 #     break
-        print('\nsimulations end ({:0.0f}s)"'.format(sim + 1, finish))
+        print('\r{} simulations end ({:0.0f}s)"'.format(sim + 1, finish))
 
     def _selection(self, key, c_ucb):
         edges = self.tree[key]
