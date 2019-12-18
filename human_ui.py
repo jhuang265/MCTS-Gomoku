@@ -24,6 +24,7 @@ COLUMN = {"a":  0, "b":  1, "c":  2,
 
 SIMULATIONS = BOARD_SIZE**2 * 30
 THINK_TIME = 600
+N_SIMUL = 1
 GAME = 1
 
 class HumanAgent:
@@ -33,17 +34,21 @@ class HumanAgent:
             if v == BOARD_SIZE - 1:
                 laskt_str += k
                 break
-        move_target = str(input('1a ~ {}: '.format(laskt_str)))
-        row = int(move_target[:1]) - 1
-        col = COLUMN[move_target[1:2]]
-        action = row * BOARD_SIZE + col
+
+        move_target = input('1a ~ {}: '.format(laskt_str)).strip()
+        try:
+            row = int(move_target[:1]) - 1
+            col = COLUMN[move_target[1:2]]
+            action = row * BOARD_SIZE + col
+        except:
+            self.get_action()
         return action
 
 
 class HumanUI:
     def __init__(self):
         self.human = HumanAgent()
-        self.ai = MCTS(BOARD_SIZE, HISTORY, THINK_TIME)
+        self.ai = MCTS(BOARD_SIZE, HISTORY, N_SIMUL)
 
     def get_action(self, state, board, idx):
         if idx % 2 == 0:
@@ -52,7 +57,7 @@ class HumanUI:
             action = self.ai.get_action(state, board)
         return action
 
-def play()
+def main()
     env = GomokuEnv(BOARD_SIZE, HISTORY)
     manager = HumanUI()
     result = {-1: 0, 0: 0, 1: 0}
@@ -89,4 +94,4 @@ def play()
         print(stat, '\n')
 
 if __name__ == '__main__':
-    play()
+    main()
