@@ -4,7 +4,7 @@ import time
 import sys
 from collections import deque, defaultdict
 import numpy as np
-from numpy import random, sqrt, log, argwhere, zeros
+from numpy import random, sqrt, argwhere, zeros
 
 N, Q = 0, 1
 CURRENT = 0
@@ -29,7 +29,7 @@ class MCTS:
         self.board = None
         self.legal_move = None
         self.no_legal_move = None
-        self.ucb = None
+        self.pucb = None
 
         # used for backup
         self.key_memory = None
@@ -57,11 +57,11 @@ class MCTS:
         self.no_legal_move = argwhere(board_fill != 0).flatten()
         # root state's key
         root_key = hash(self.root.tostring())
-        # argmax Q
-        action = self._selection(root_key, c_ucb=0)
+        # argmax Q or argmin Q
+        action = self._selection(root_key, c_pucb=0)
         print('')
-        print(self.ucb.reshape(
-            self.board_size, self.board_size).round(decimals=4))
+        print(self.pucb.reshape(
+            self.board_size, self.board_size).round(decimals=3))
         return action
 
     def _simulation(self, state):
@@ -83,7 +83,7 @@ class MCTS:
                 # search my tree
                 if key in self.tree:
                     # selection
-                    action = self._selection(key, c_ucb=1)
+                    action = self._selection(key, c_pucb=5)
                     self.action_memory.appendleft(action)
                     self.key_memory.appendleft(key)
                     n_selection += 1
@@ -107,50 +107,51 @@ class MCTS:
                 #     break
         print('\r{} simulations end ({:0.0f}s)'.format(sim + 1, finish))
 
-    def _selection(self, key, c_ucb):
+    def _selection(self, key, c_pucb):
         edges = self.tree[key]
-        ucb = self._get_ucb(edges, c_ucb)
-        self.ucb = ucb
+        pucb = self._get_pucb(edges, c_pucb)
+        self.pucb = pucb
         if self.board[COLOR][0] == WHITE:
             # black's choice
-            action = argwhere(ucb == ucb.max()).flatten()
+            action = argwhere(pucb == pucb.max()).flatten()
         else:
             # white's choice
-            action = argwhere(ucb == ucb.min()).flatten()
+            action = argwhere(pucb == pucb.min()).flatten()
         action = action[random.choice(len(action))]
         return action
 
     def _expansion(self, key):
         # only select once for rollout
-        action = self._selection(key, c_ucb=1)
+        action = self._selection(key, c_pucb=5)
         return action
 
-    def _get_ucb(self, edges, c_ucb):
+    def _get_pucb(self, edges, c_pucb):
         total_N = 0
-        ucb = zeros((self.board_size**2), 'float')
+        prior = 1/len(self.legal_move)
+        pucb = zeros((self.board_size**2), 'float')
         for i in range(self.board_size**2):
             total_N += edges[i][N]
-        # black's ucb
+        # black's pucb
         if self.board[COLOR][0] == WHITE:
             for move in self.legal_move:
                 if edges[move][N] != 0:
-                    ucb[move] = edges[move][Q] + c_ucb * \
-                        sqrt(2 * log(total_N) / edges[move][N])
+                    pucb[move] = edges[move][Q] + \
+                        c_pucb * prior * sqrt(total_N) / (edges[move][N] + 1)
                 else:
-                    ucb[move] = np.inf
+                    pucb[move] = 0
             for move in self.no_legal_move:
-                ucb[move] = -np.inf
-        # white's ucb
+                pucb[move] = -np.inf
+        # white's pucb
         else:
             for move in self.legal_move:
                 if edges[move][N] != 0:
-                    ucb[move] = edges[move][Q] - c_ucb * \
-                        sqrt(2 * log(total_N) / edges[move][N])
+                    pucb[move] = edges[move][Q] - \
+                        c_pucb * prior * sqrt(total_N) / (edges[move][N] + 1)
                 else:
-                    ucb[move] = -np.inf
+                    pucb[move] = 0
             for move in self.no_legal_move:
-                ucb[move] = np.inf
-        return ucb
+                pucb[move] = np.inf
+        return pucb
 
     def _backup(self, reward, steps):
         # steps is n_selection + n_expansion
