@@ -1,6 +1,7 @@
 from __future__ import print_function
 from gomoku_env import GomokuEnv
 from mcts_uct import MCTS
+#from mcts_puct import MCTS
 import numpy as np
 
 N, Q = 0, 1
