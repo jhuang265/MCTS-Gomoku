@@ -4,12 +4,6 @@ from mcts_uct import MCTS
 #from mcts_puct import MCTS
 import numpy as np
 
-N, Q = 0, 1
-CURRENT = 0
-OPPONENT = 1
-COLOR = 2
-BLACK = 1
-WHITE = 0
 HISTORY = 2
 COLUMN = {"a": 0, "b": 1, "c": 2,
           "d": 3, "e": 4, "f": 5,
@@ -84,4 +78,6 @@ def main()
         print(stat, '\n')
 
 if __name__ == '__main__':
+    np.set_printoptions(suppress=True)
+    np.random.seed(0)
     main()
