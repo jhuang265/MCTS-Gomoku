@@ -15,7 +15,7 @@ class GomokuEnv:
     def __init__(self, board_size, n_history, display=True):
         self.board_size = board_size
         self.n_history = n_history
-        state.display = display
+        self.display = display
         self.state = None
         self.board = None
         self.history = None
@@ -24,17 +24,20 @@ class GomokuEnv:
 
     def reset(self, state=None):
         if state is None:  # initialize state
-            self.state = np.zeros(((self.n_history * 2 + 1) * self.board_size**2), 'int8')
-            self.history = deque([np.zeros((self.board_size**2), 'int8')] *
+            self.state = np.zeros(
+                ((self.n_history * 2 + 1) * self.board_size**2), 'float')
+            self.history = deque([np.zeros((self.board_size**2), 'float')] *
                                  self.n_history * 2, maxlen=self.n_history * 2)
-            self.board = np.zeros((3, self.board_size**2), 'int8')
+            self.board = np.zeros((3, self.board_size**2), 'float')
             self.action = None
         else:  # pass the state to the simulation's root
             self.state = state.copy()
-            state_origin = self.state.reshape(self.n_history * 2 + 1, self.board_size**2)
+            state_origin = self.state.reshape(
+                self.n_history * 2 + 1, self.board_size**2)
             self.history = deque([state_origin[i]
-                                  for i in range(self.n_history * 2)], maxlen=self.n_history * 2)
-            self.board = np.zeros((3, self.board_size**2), 'int8')
+                                  for i in range(self.n_history * 2)],
+                                 maxlen=self.n_history * 2)
+            self.board = np.zeros((3, self.board_size**2), 'float')
             self.board[CURRENT] = state_origin[1]
             self.board[OPPONENT] = state_origin[0]
             self.board[COLOR] = state_origin[self.n_history * 2]
@@ -44,8 +47,9 @@ class GomokuEnv:
     def step(self, action):
         self.action = action
         # board
-        state_origin = self.state.reshape(self.n_history * 2 + 1, self.board_size**2)
-        self.board = np.zeros((3, self.board_size**2), 'int8')
+        state_origin = self.state.reshape(
+            self.n_history * 2 + 1, self.board_size**2)
+        self.board = np.zeros((3, self.board_size**2), 'float')
         self.board[CURRENT] = state_origin[1]
         self.board[OPPONENT] = state_origin[0]
         self.board[COLOR] = state_origin[self.n_history * 2]
@@ -58,7 +62,9 @@ class GomokuEnv:
         self.board[COLOR] = abs(self.board[COLOR] - 1)
         self.state = np.r_[np.asarray(self.history).flatten(),
                            np.asarray(self.board[COLOR]).flatten()]
-        return self._check_win(self.board[CURRENT].reshape(self.board_size, self.board_size, self.display))
+        return self._check_win(
+            self.board[CURRENT].reshape(
+                self.board_size, self.board_size), self.display)
 
     def _check_win(self, board, display=True):
         current_grid = np.zeros((5, 5))
@@ -77,7 +83,8 @@ class GomokuEnv:
                     else:
                         reward = -1
                     if display:
-                        print('\n#########   {} Win!   #########'.format(COLOR_DICT[color]))
+                        print('\n#########   {} Win!   #########'.format(
+                            COLOR_DICT[color]))
                     return self.state, self.board, reward, done
                 if sum_diagonal_1 == 5 or sum_diagonal_2 == 5:
                     reward = 1
@@ -88,7 +95,8 @@ class GomokuEnv:
                     else:
                         reward = -1
                     if display:
-                        print('\n#########   {} Win!   #########'.format(COLOR_DICT[color]))
+                        print('\n#########   {} Win!   #########'.format(
+                            COLOR_DICT[color]))
                     return self.state, self.board, reward, done
         if np.sum(self.board_fill) == self.board_size**2 - 1:
             reward = 0
@@ -148,8 +156,9 @@ class GomokuEnv:
                 if j == self.board_size - 1:
                     board_str += '\n'
         board_str += '  ' + '-' * (self.board_size - 6) + \
-                ' MOVE: {:2} '.format(count) + '-' * (self.board_size - 6)
+            '  MOVE: {:2}  '.format(count) + '-' * (self.board_size - 6)
         print(board_str)
+
 
 if __name__ == '__main__':
     env = GomokuEnv(9, 2)

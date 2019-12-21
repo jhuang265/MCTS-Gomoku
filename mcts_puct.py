@@ -14,8 +14,8 @@ BLACK = 1
 WHITE = 0
 BOARD_SIZE = 9
 HISTORY = 2
-N_SIMUL = 100000
-GAME = 1
+N_SIMUL = 5000
+GAME = 5
 
 
 class MCTS:
@@ -40,8 +40,6 @@ class MCTS:
         self._simulation(state)
         # init root board after simulatons
         self.board = board
-        board_fill = self.board[CURRENT] + self.board[OPPONENT]
-        self.legal_move = argwhere(board_fill == 0).flatten()
         # root state's key
         root_key = hash(self.root.tostring())
         # argmax Q or argmin Q
@@ -58,6 +56,7 @@ class MCTS:
             self.state, self.board = self.env_simul.reset(state)
             done = False
             is_expansion = True
+
             while not done:
                 key = hash(self.state.tostring())
                 # search my tree
@@ -66,19 +65,17 @@ class MCTS:
                     action = self._selection(key, c_pucb=5)
                     self.action_memory.appendleft(action)
                     self.key_memory.appendleft(key)
-                elif is_expansion:
-                    # expansion
-                    # only select once for rollout
-                    action = self._selection(key, c_pucb=5)
-                    self.action_memory.appendleft(action)
-                    self.key_memory.appendleft(key)
-                    is_expansion = False
                 else:
-                    # rollout
-                    legal_move = self._get_legal_move(self.board)
+                    # expansion
+                    legal_move, _ = self._get_legal_move(self.board)
                     action = random.choice(legal_move)
-                self.state, self.board, reward, done = \
-                    self.env_simul.step(action)
+                    if is_expansion:
+                        self.action_memory.appendleft(action)
+                        self.key_memory.appendleft(key)
+                        is_expansion = False
+
+                self.state, self.board, reward, done = self.env_simul.step(action)
+
             if done:
                 # backup & reset memory
                 self._backup(reward)
@@ -89,8 +86,8 @@ class MCTS:
 
     def _get_legal_move(self, board):
         board_fill = board[CURRENT] + board[OPPONENT]
-        legal_move = argwhere(board_fill == 0).flatten()
-        return legal_move
+        legal_move = argwhere(board_fill != 1).flatten()
+        return legal_move, board_fill
 
     def _selection(self, key, c_pucb):
         edges = self.tree[key]
@@ -114,31 +111,30 @@ class MCTS:
         return action
 
     def _get_pucb(self, edges, c_pucb):
-        legal_move = self._get_legal_move(self.board)
+        legal_move, no_legal_loc = self._get_legal_move(self.board)
         prior = 1/len(legal_move)
         total_N = edges.sum(0)[N]
         # black's pucb
         if self.board[COLOR][0] == WHITE:
-            pucb = zeros(self.board_size**2) - np.inf
-            for move in legal_move:
-                pucb[move] = edges[move][Q] + \
-                    c_pucb * prior * sqrt(total_N) / (edges[move][N] + 1)
+            no_legal_loc *= -99999999
+            pucb = edges[:, Q] + \
+                c_pucb * prior * sqrt(total_N) / (edges[:, N] + 1) + no_legal_loc
         # white's pucb
         else:
-            pucb = zeros(self.board_size**2) + np.inf
-            for move in legal_move:
-                pucb[move] = edges[move][Q] - \
-                    c_pucb * prior * sqrt(total_N) / (edges[move][N] + 1)
+            no_legal_loc *= 99999999
+            pucb = edges[:, Q] - \
+                c_pucb * prior * sqrt(total_N) / (edges[:, N] + 1) + no_legal_loc
         return pucb
 
     def _backup(self, reward):
         # update edges in my tree
-        for _ in range(len(self.action_memory)):
+        while self.action_memory:
             key = self.key_memory.popleft()
             action = self.action_memory.popleft()
             edges = self.tree[key]
             edges[action][N] += 1
             edges[action][Q] += (reward - edges[action][Q]) / edges[action][N]
+        return 0
 
 
 def play():
@@ -180,5 +176,5 @@ def play():
 
 if __name__ == '__main__':
     np.set_printoptions(suppress=True)
-    np.random.seed(0)
+    #np.random.seed(0)
     play()
