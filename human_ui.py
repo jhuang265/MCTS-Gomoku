@@ -41,7 +41,7 @@ class HumanUI:
             action = self.ai.get_action(state, board)
         return action
 
-def main()
+def main():
     env = GomokuEnv(BOARD_SIZE, HISTORY)
     manager = HumanUI()
     result = {'Black': 0, 'White': 0, 'Draw': 0}
